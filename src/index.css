@@ -8,49 +8,59 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 213 27% 10%;
+    /* Classic Professional Theme */
+    --background: 0 0% 98%;
+    --foreground: 216 28% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 213 27% 10%;
+    --card-foreground: 216 28% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 213 27% 10%;
+    --popover-foreground: 216 28% 15%;
 
-    --primary: 217 91% 35%;
+    /* Deep Navy Primary */
+    --primary: 216 28% 25%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 213 27% 10%;
+    /* Gold Accent */
+    --accent: 38 48% 58%;
+    --accent-foreground: 216 28% 15%;
 
-    --muted: 214 32% 91%;
+    --secondary: 210 17% 93%;
+    --secondary-foreground: 216 28% 15%;
+
+    --muted: 210 17% 93%;
     --muted-foreground: 215 16% 47%;
-
-    --accent: 217 91% 45%;
-    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 32% 88%;
     --input: 214 32% 88%;
-    --ring: 217 91% 35%;
+    --ring: 38 48% 58%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 217 33% 17%;
-    --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 217 91% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 23%;
-    --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 217 33% 23%;
-    --sidebar-ring: 217 91% 45%;
+    /* Sidebar Navy Theme */
+    --sidebar-background: 216 28% 25%;
+    --sidebar-foreground: 210 17% 93%;
+    --sidebar-primary: 38 48% 58%;
+    --sidebar-primary-foreground: 216 28% 15%;
+    --sidebar-accent: 216 28% 30%;
+    --sidebar-accent-foreground: 210 17% 93%;
+    --sidebar-border: 216 28% 30%;
+    --sidebar-ring: 38 48% 58%;
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    
+    /* AI-specific colors */
+    --ai-highlight: 38 48% 58%;
+    --ai-confidence-high: 142 76% 36%;
+    --ai-confidence-medium: 38 92% 50%;
+    --ai-confidence-low: 0 84% 60%;
   }
 
   .dark {

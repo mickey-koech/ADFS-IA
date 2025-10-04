@@ -3,6 +3,10 @@ import { FileUpload } from '@/components/FileUpload';
 import { FileList } from '@/components/FileList';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { SemanticSearch } from '@/components/SemanticSearch';
+import { PredictiveRecommendations } from '@/components/PredictiveRecommendations';
+import { DuplicateManager } from '@/components/DuplicateManager';
+import { AnomalyAlerts } from '@/components/AnomalyAlerts';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Dashboard() {
@@ -33,7 +37,24 @@ export default function Dashboard() {
         
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
+            <div>
+              <h1 className="text-4xl font-serif font-bold text-primary mb-2">Digital Filing System</h1>
+              <p className="text-muted-foreground">AI-powered document management</p>
+            </div>
+            
+            <AnomalyAlerts />
+            
+            <SemanticSearch 
+              onResults={(results) => console.log(results)}
+              onLoading={(loading) => console.log(loading)}
+            />
+            
+            <PredictiveRecommendations />
+            
+            <DuplicateManager />
+            
             <FileUpload onUploadComplete={handleUploadComplete} />
+            
             <FileList
               searchQuery={searchQuery}
               selectedTags={selectedTags}
