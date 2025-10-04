@@ -90,6 +90,12 @@ serve(async (req) => {
     });
     
     const aiResult = await aiResponse.json();
+    
+    // Validate AI response
+    if (!aiResult?.choices?.[0]?.message?.tool_calls?.[0]) {
+      throw new Error('Invalid AI response: no tool calls received');
+    }
+    
     const toolCall = aiResult.choices[0].message.tool_calls[0];
     const analysis = JSON.parse(toolCall.function.arguments);
     

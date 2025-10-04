@@ -74,8 +74,18 @@ serve(async (req) => {
       });
       
       const aiResult = await aiResponse.json();
-      const toolCall = aiResult.choices[0].message.tool_calls?.[0];
-      const rankings = toolCall ? JSON.parse(toolCall.function.arguments).rankings : [];
+      
+      // Validate AI response structure
+      if (!aiResult?.choices?.[0]?.message?.tool_calls?.[0]) {
+        console.log('No rankings from AI, using default relevance');
+        return new Response(
+          JSON.stringify({ results: textResults }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const toolCall = aiResult.choices[0].message.tool_calls[0];
+      const rankings = JSON.parse(toolCall.function.arguments).rankings || [];
       
       // Merge rankings with results
       const rankedResults = textResults.map(file => {

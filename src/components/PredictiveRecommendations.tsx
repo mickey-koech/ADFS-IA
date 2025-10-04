@@ -35,7 +35,15 @@ export function PredictiveRecommendations() {
         body: { userId: user.id }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Prediction error:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        setPredictions([]);
+        return;
+      }
       
       // Load file details for predictions
       if (data.predictions && data.predictions.length > 0) {

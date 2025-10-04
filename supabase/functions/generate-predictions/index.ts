@@ -73,8 +73,18 @@ serve(async (req) => {
     });
     
     const aiResult = await aiResponse.json();
-    const toolCall = aiResult.choices[0].message.tool_calls?.[0];
-    const predictions = toolCall ? JSON.parse(toolCall.function.arguments).predictions : [];
+    
+    // Validate AI response structure
+    if (!aiResult?.choices?.[0]?.message?.tool_calls?.[0]) {
+      console.log('No predictions generated from AI:', aiResult);
+      return new Response(
+        JSON.stringify({ predictions: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const toolCall = aiResult.choices[0].message.tool_calls[0];
+    const predictions = JSON.parse(toolCall.function.arguments).predictions || [];
     
     // Get matching files for each prediction
     const recommendedFiles = [];
