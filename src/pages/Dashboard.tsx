@@ -7,6 +7,7 @@ import { SemanticSearch } from '@/components/SemanticSearch';
 import { PredictiveRecommendations } from '@/components/PredictiveRecommendations';
 import { DuplicateManager } from '@/components/DuplicateManager';
 import { AnomalyAlerts } from '@/components/AnomalyAlerts';
+import { TaskManager } from '@/components/TaskManager';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Dashboard() {
@@ -64,6 +65,8 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      
+      <TaskManager />
     </div>
   );
 }

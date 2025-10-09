@@ -26,6 +26,11 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
 
   const uploadFile = async (file: File, index: number) => {
     try {
+      // Update progress: 10%
+      setUploadingFiles(prev =>
+        prev.map((f, i) => i === index ? { ...f, progress: 10 } : f)
+      );
+
       // Create unique file path
       const fileExt = file.name.split('.').pop();
       const fileName = `${user!.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -37,8 +42,13 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
 
       if (uploadError) throw uploadError;
 
+      // Update progress: 50%
+      setUploadingFiles(prev =>
+        prev.map((f, i) => i === index ? { ...f, progress: 50 } : f)
+      );
+
       // Create file metadata record
-      const { error: dbError } = await supabase
+      const { data: fileRecord, error: dbError } = await supabase
         .from('files')
         .insert({
           filename: fileName,
@@ -47,10 +57,34 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
           mime_type: file.type,
           file_size: file.size,
           uploaded_by: user!.id,
-        });
+          content_hash: `hash-${Date.now()}-${Math.random()}`,
+          ocr_status: 'pending'
+        })
+        .select()
+        .single();
 
       if (dbError) throw dbError;
 
+      // Update progress: 70%
+      setUploadingFiles(prev =>
+        prev.map((f, i) => i === index ? { ...f, progress: 70 } : f)
+      );
+
+      // Trigger AI processing in background (don't wait)
+      supabase.functions.invoke('process-file-ai', {
+        body: { fileId: fileRecord.id }
+      }).then(({ error }) => {
+        if (error) console.warn('AI processing queued with warning:', error);
+      });
+
+      // Trigger duplicate detection in background
+      supabase.functions.invoke('detect-duplicates', {
+        body: { fileId: fileRecord.id }
+      }).then(({ error }) => {
+        if (error) console.warn('Duplicate detection queued with warning:', error);
+      });
+
+      // Update progress: 100%
       setUploadingFiles(prev =>
         prev.map((f, i) =>
           i === index ? { ...f, progress: 100, status: 'success' as const } : f
@@ -114,8 +148,8 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             isDragging
-              ? 'border-primary bg-primary/5'
-              : 'border-border hover:border-primary/50'
+              ? 'border-accent bg-accent/5'
+              : 'border-accent/30 hover:border-accent/50'
           }`}
           onDragOver={(e) => {
             e.preventDefault();
@@ -124,10 +158,10 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
         >
-          <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">Upload Files</h3>
+          <Upload className="mx-auto h-12 w-12 text-accent mb-4" />
+          <h3 className="text-lg font-serif mb-2">Upload Documents</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Drag and drop files here, or click to browse
+            Drag and drop files here, or click to browse • AI processing included
           </p>
           <Button
             onClick={() => document.getElementById('file-upload')?.click()}
