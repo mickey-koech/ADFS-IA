@@ -82,12 +82,15 @@ export function TaskManager() {
   if (tasks.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 z-50">
-      <Card className="shadow-lg border-accent/20">
+    <div className="fixed bottom-6 right-6 w-96 z-50 animate-scale-in">
+      <Card className="shadow-glass border-accent/20 backdrop-blur-glass bg-card/95">
         <CardHeader className="pb-3 cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-accent" />
+              <div className="relative">
+                <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                <div className="absolute inset-0 animate-glow-pulse rounded-full" />
+              </div>
               <CardTitle className="text-sm font-semibold">
                 Active Tasks ({tasks.length})
               </CardTitle>
@@ -95,7 +98,7 @@ export function TaskManager() {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-6 w-6"
+              className="h-6 w-6 hover:bg-accent/10"
               onClick={(e) => {
                 e.stopPropagation();
                 setTasks([]);
@@ -111,7 +114,7 @@ export function TaskManager() {
             {tasks.map((task) => (
               <div 
                 key={task.id} 
-                className="flex items-start gap-3 p-3 rounded-lg border border-border bg-card/50 hover:bg-accent/5 transition-colors"
+                className="flex items-start gap-3 p-3 rounded-xl border border-border/50 bg-card/70 hover:bg-accent/5 hover:border-accent/30 transition-all duration-200 hover:shadow-md"
               >
                 <div className="mt-0.5 text-accent">
                   {getTaskIcon(task.type)}
@@ -122,7 +125,7 @@ export function TaskManager() {
                     <p className="text-sm font-medium capitalize">
                       {task.type.replace('_', ' ')}
                     </p>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs border-accent/30 text-accent">
                       Pending
                     </Badge>
                   </div>
@@ -134,8 +137,8 @@ export function TaskManager() {
                   )}
                   
                   <div className="flex items-center gap-2">
-                    <Progress value={task.progress} className="h-1 flex-1" />
-                    <span className="text-xs text-muted-foreground">
+                    <Progress value={task.progress} className="h-1.5 flex-1" />
+                    <span className="text-xs font-mono text-muted-foreground">
                       {Math.round(task.progress)}%
                     </span>
                   </div>

@@ -21,18 +21,21 @@ export function DashboardHeader({ searchQuery, onSearchChange }: DashboardHeader
   const { user, signOut } = useAuth();
 
   return (
-    <header className="border-b bg-card">
-      <div className="flex items-center justify-between px-6 py-4">
+    <header className="border-b bg-card shadow-sm h-16">
+      <div className="flex items-center justify-between px-6 h-full">
         <div className="flex-1 max-w-2xl">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
             <Input
               type="search"
-              placeholder="Search files by name, content, or tags..."
-              className="pl-10"
+              placeholder="Search files with AI-powered semantic search..."
+              className="pl-10 h-11 bg-background/50 border-border/50 focus:border-accent/50 focus:ring-accent/20 rounded-xl transition-all"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-ai-glow font-mono opacity-0 group-focus-within:opacity-100 transition-opacity">
+              AI
+            </div>
           </div>
         </div>
 

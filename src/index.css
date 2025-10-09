@@ -8,59 +8,73 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Classic Professional Theme */
-    --background: 0 0% 98%;
-    --foreground: 216 28% 15%;
+    /* AFDS Design System - Light Mode */
+    /* Primary Surface - Deep Navy */
+    --background: 210 20% 98%; /* Off-White #F8F9FB */
+    --foreground: 215 45% 12%; /* Deep Navy #0B1D3A */
 
     --card: 0 0% 100%;
-    --card-foreground: 216 28% 15%;
+    --card-foreground: 215 45% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 216 28% 15%;
+    --popover-foreground: 215 45% 12%;
 
-    /* Deep Navy Primary */
-    --primary: 216 28% 25%;
+    /* Primary - Deep Navy */
+    --primary: 215 45% 12%; /* #0B1D3A */
     --primary-foreground: 0 0% 100%;
 
-    /* Gold Accent */
-    --accent: 38 48% 58%;
-    --accent-foreground: 216 28% 15%;
+    /* Accent - Electric Gold */
+    --accent: 43 90% 62%; /* #F5C443 */
+    --accent-foreground: 215 45% 12%;
 
-    --secondary: 210 17% 93%;
-    --secondary-foreground: 216 28% 15%;
+    /* Secondary - Cool Gray */
+    --secondary: 225 14% 85%; /* #D6D8E1 */
+    --secondary-foreground: 215 45% 12%;
 
-    --muted: 210 17% 93%;
+    --muted: 225 14% 85%;
     --muted-foreground: 215 16% 47%;
 
-    --destructive: 0 84% 60%;
+    /* Success - Teal Blue */
+    --success: 168 82% 42%; /* #12C6A2 */
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning - Amber */
+    --warning: 38 100% 56%; /* #FFB020 */
+    --warning-foreground: 215 45% 12%;
+    
+    /* Error - Deep Red */
+    --destructive: 6 62% 47%; /* #C0392B */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 88%;
-    --input: 214 32% 88%;
-    --ring: 38 48% 58%;
+    /* Neural Cyan - AI Glow */
+    --ai-glow: 177 91% 58%; /* #37F1E3 */
+    --ai-glow-foreground: 215 45% 12%;
 
-    --radius: 0.75rem;
+    --border: 225 14% 85%;
+    --input: 225 14% 85%;
+    --ring: 43 90% 62%;
 
-    /* Sidebar Navy Theme */
-    --sidebar-background: 216 28% 25%;
-    --sidebar-foreground: 210 17% 93%;
-    --sidebar-primary: 38 48% 58%;
-    --sidebar-primary-foreground: 216 28% 15%;
-    --sidebar-accent: 216 28% 30%;
-    --sidebar-accent-foreground: 210 17% 93%;
-    --sidebar-border: 216 28% 30%;
-    --sidebar-ring: 38 48% 58%;
+    --radius: 1.25rem; /* 20px for card corners */
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    /* Sidebar - Deep Navy Theme */
+    --sidebar-background: 215 45% 12%;
+    --sidebar-foreground: 225 14% 85%;
+    --sidebar-primary: 43 90% 62%;
+    --sidebar-primary-foreground: 215 45% 12%;
+    --sidebar-accent: 215 45% 18%;
+    --sidebar-accent-foreground: 225 14% 85%;
+    --sidebar-border: 215 45% 18%;
+    --sidebar-ring: 43 90% 62%;
+    
+    /* Glass Effect */
+    --glass-bg: 0 0% 100%;
+    --glass-border: 225 14% 85%;
     
     /* AI-specific colors */
-    --ai-highlight: 38 48% 58%;
-    --ai-confidence-high: 142 76% 36%;
-    --ai-confidence-medium: 38 92% 50%;
-    --ai-confidence-low: 0 84% 60%;
+    --ai-highlight: 43 90% 62%;
+    --ai-confidence-high: 168 82% 42%;
+    --ai-confidence-medium: 38 100% 56%;
+    --ai-confidence-low: 6 62% 47%;
   }
 
   .dark {

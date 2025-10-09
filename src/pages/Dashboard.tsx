@@ -22,7 +22,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background w-full">
       <DashboardSidebar
         selectedFolder={selectedFolder}
         onFolderSelect={setSelectedFolder}
@@ -37,10 +37,10 @@ export default function Dashboard() {
         />
         
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div>
-              <h1 className="text-4xl font-serif font-bold text-primary mb-2">Digital Filing System</h1>
-              <p className="text-muted-foreground">AI-powered document management</p>
+          <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+            <div className="mb-8">
+              <h1 className="text-5xl font-playfair font-bold text-primary mb-2 tracking-tight">AFDS</h1>
+              <p className="text-lg text-muted-foreground">AI-Powered Digital Filing System</p>
             </div>
             
             <AnomalyAlerts />
