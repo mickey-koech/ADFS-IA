@@ -2,39 +2,36 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import PendingApproval from './PendingApproval';
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const [isApproved, setIsApproved] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    checkApprovalStatus();
+    checkAdminRole();
   }, [user]);
 
-  const checkApprovalStatus = async () => {
+  const checkAdminRole = async () => {
     if (!user) {
+      setIsAdmin(false);
       setChecking(false);
       return;
     }
 
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('is_approved')
-        .eq('id', user.id)
-        .single();
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
 
       if (error) {
-        console.error('Error checking approval status:', error);
-        setIsApproved(false);
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
       } else {
-        setIsApproved(data?.is_approved ?? false);
+        setIsAdmin(data === true);
       }
     } catch (error) {
-      console.error('Error checking approval status:', error);
-      setIsApproved(false);
+      console.error('Error checking admin role:', error);
+      setIsAdmin(false);
     } finally {
       setChecking(false);
     }
@@ -49,11 +46,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
 
-  if (isApproved === false) {
-    return <PendingApproval />;
+  if (isAdmin === false) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
