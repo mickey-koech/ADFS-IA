@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import PendingApproval from './PendingApproval';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -52,9 +51,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (isApproved === false) {
-    return <PendingApproval />;
-  }
+  // For development: Allow access even if not approved
+  // In production, you'd want to show the PendingApproval component
+  // if (isApproved === false) {
+  //   return <PendingApproval />;
+  // }
 
   return <>{children}</>;
 }
