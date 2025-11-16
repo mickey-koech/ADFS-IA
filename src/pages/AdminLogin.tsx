@@ -39,6 +39,11 @@ export default function AdminLogin() {
           <CardDescription className="text-base">
             Enter your credentials to access the admin dashboard
           </CardDescription>
+          <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-primary/20">
+            <p className="text-xs font-semibold text-muted-foreground mb-1">Sample Admin Credentials:</p>
+            <p className="text-xs text-foreground">Email: admin@filestack.com</p>
+            <p className="text-xs text-foreground">Password: Admin123!</p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
