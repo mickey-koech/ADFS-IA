@@ -445,6 +445,7 @@ export type Database = {
         Args: { dept_id?: string; user_id_to_approve: string }
         Returns: undefined
       }
+      auto_approve_for_testing: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -464,6 +465,7 @@ export type Database = {
           similarity: number
         }[]
       }
+      setup_initial_admin: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "secretary" | "viewer"
