@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Check, X, UserCog } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -32,6 +33,8 @@ export default function AdminUsers() {
   const [approvedUsers, setApprovedUsers] = useState<Profile[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedDepts, setSelectedDepts] = useState<Record<string, string>>({});
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [bulkDepartment, setBulkDepartment] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const { user } = useAuth();
@@ -135,6 +138,94 @@ export default function AdminUsers() {
     } catch (error: any) {
       toast({
         title: 'Rejection Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    const newSelected = new Set(selectedUsers);
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId);
+    } else {
+      newSelected.add(userId);
+    }
+    setSelectedUsers(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.size === pendingUsers.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(pendingUsers.map(u => u.id)));
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedUsers.size === 0) {
+      toast({
+        title: 'No Users Selected',
+        description: 'Please select users to approve.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const promises = Array.from(selectedUsers).map(userId =>
+        supabase.rpc('approve_user', {
+          user_id_to_approve: userId,
+          dept_id: bulkDepartment || null,
+        })
+      );
+
+      await Promise.all(promises);
+
+      toast({
+        title: 'Bulk Approval Complete',
+        description: `${selectedUsers.size} user(s) approved successfully.`,
+      });
+
+      setSelectedUsers(new Set());
+      setBulkDepartment('');
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: 'Bulk Approval Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedUsers.size === 0) {
+      toast({
+        title: 'No Users Selected',
+        description: 'Please select users to reject.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const promises = Array.from(selectedUsers).map(userId =>
+        supabase.auth.admin.deleteUser(userId)
+      );
+
+      await Promise.all(promises);
+
+      toast({
+        title: 'Bulk Rejection Complete',
+        description: `${selectedUsers.size} user(s) rejected successfully.`,
+      });
+
+      setSelectedUsers(new Set());
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: 'Bulk Rejection Failed',
         description: error.message,
         variant: 'destructive',
       });
