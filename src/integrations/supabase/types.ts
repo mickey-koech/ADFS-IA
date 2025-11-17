@@ -19,10 +19,12 @@ export type Database = {
           action: string
           created_at: string
           id: string
+          impersonated_user_id: string | null
           ip_address: unknown
           metadata: Json | null
           resource_id: string | null
           resource_type: string
+          session_token: string | null
           user_agent: string | null
           user_id: string | null
         }
@@ -30,10 +32,12 @@ export type Database = {
           action: string
           created_at?: string
           id?: string
+          impersonated_user_id?: string | null
           ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type: string
+          session_token?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -41,10 +45,12 @@ export type Database = {
           action?: string
           created_at?: string
           id?: string
+          impersonated_user_id?: string | null
           ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string
+          session_token?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -453,6 +459,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_impersonation: {
+        Args: {
+          _action: string
+          _admin_id: string
+          _ip_address?: unknown
+          _session_token?: string
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
       match_files: {
         Args: {
           match_count: number
@@ -468,6 +484,7 @@ export type Database = {
       setup_initial_admin: { Args: never; Returns: undefined }
     }
     Enums: {
+      admin_action: "impersonate_start" | "impersonate_end"
       app_role: "admin" | "secretary" | "viewer"
       duplicate_status: "suggested" | "confirmed" | "rejected"
       ocr_status: "pending" | "processing" | "done" | "failed"
@@ -598,6 +615,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_action: ["impersonate_start", "impersonate_end"],
       app_role: ["admin", "secretary", "viewer"],
       duplicate_status: ["suggested", "confirmed", "rejected"],
       ocr_status: ["pending", "processing", "done", "failed"],
