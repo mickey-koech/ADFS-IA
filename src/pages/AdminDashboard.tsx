@@ -4,8 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, AlertCircle, Building2, LogOut, UserCog } from 'lucide-react';
+import { Users, FileText, Building2, LogOut, UserCog, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardWidgets } from '@/components/admin/DashboardWidgets';
+import { formatDistanceToNow } from 'date-fns';
 
 interface DashboardStats {
   totalUsers: number;
@@ -13,6 +15,18 @@ interface DashboardStats {
   approvedUsers: number;
   totalFiles: number;
   departments: number;
+}
+
+interface RecentActivity {
+  id: string;
+  action: string;
+  user_email: string;
+  timestamp: string;
+}
+
+interface DepartmentStats {
+  name: string;
+  userCount: number;
 }
 
 export default function AdminDashboard() {
@@ -23,6 +37,8 @@ export default function AdminDashboard() {
     totalFiles: 0,
     departments: 0,
   });
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [departmentStats, setDepartmentStats] = useState<DepartmentStats[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user, signOut } = useAuth();
@@ -64,10 +80,20 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const [profilesRes, filesRes, deptsRes] = await Promise.all([
+      const [profilesRes, filesRes, deptsRes, activityRes, deptStatsRes] = await Promise.all([
         supabase.from('profiles').select('is_approved', { count: 'exact' }),
         supabase.from('files').select('id', { count: 'exact' }),
         supabase.from('departments').select('id', { count: 'exact' }),
+        supabase
+          .from('activity_logs')
+          .select('id, action, user_id, created_at')
+          .order('created_at', { ascending: false })
+          .limit(10),
+        supabase
+          .from('profiles')
+          .select('department_id, departments(name)')
+          .eq('is_approved', true)
+          .not('department_id', 'is', null)
       ]);
 
       const pendingCount = profilesRes.data?.filter(p => !p.is_approved).length || 0;
@@ -80,6 +106,47 @@ export default function AdminDashboard() {
         totalFiles: filesRes.count || 0,
         departments: deptsRes.count || 0,
       });
+
+      // Process recent activity
+      if (activityRes.data) {
+        const activities: RecentActivity[] = await Promise.all(
+          activityRes.data.map(async (log) => {
+            let userEmail = 'System';
+            if (log.user_id) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('id', log.user_id)
+                .single();
+              userEmail = profile?.email || 'Unknown';
+            }
+            return {
+              id: log.id,
+              action: log.action,
+              user_email: userEmail,
+              timestamp: log.created_at,
+            };
+          })
+        );
+        setRecentActivity(activities);
+      }
+
+      // Process department stats
+      if (deptStatsRes.data) {
+        const deptMap = new Map<string, number>();
+        deptStatsRes.data.forEach((profile: any) => {
+          if (profile.departments?.name) {
+            const count = deptMap.get(profile.departments.name) || 0;
+            deptMap.set(profile.departments.name, count + 1);
+          }
+        });
+
+        const deptStatsArray = Array.from(deptMap.entries())
+          .map(([name, userCount]) => ({ name, userCount }))
+          .sort((a, b) => b.userCount - a.userCount);
+        
+        setDepartmentStats(deptStatsArray);
+      }
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -127,80 +194,76 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
-              <Users className="w-4 h-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-display text-primary animate-fade-in">{stats.totalUsers}</div>
-            </CardContent>
-          </Card>
+        <div className="space-y-6">
+          {/* Dashboard Widgets */}
+          <DashboardWidgets 
+            stats={stats} 
+            recentActivity={recentActivity}
+            departmentStats={departmentStats}
+          />
 
-          <Card className="border-warning/20 hover:shadow-elegant transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pending Approval</CardTitle>
-              <AlertCircle className="w-4 h-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-display text-warning animate-fade-in">{stats.pendingUsers}</div>
-            </CardContent>
-          </Card>
+          {/* Quick Actions */}
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  User Management
+                </CardTitle>
+                <CardDescription>
+                  Review and approve user registrations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => navigate('/admin/users')}
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                >
+                  Manage Users
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="border-success/20 hover:shadow-elegant transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Approved Users</CardTitle>
-              <Users className="w-4 h-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-display text-success animate-fade-in">{stats.approvedUsers}</div>
-            </CardContent>
-          </Card>
+            <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Departments
+                </CardTitle>
+                <CardDescription>
+                  Create and manage departments
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => navigate('/admin/departments')}
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                >
+                  Manage Departments
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Departments</CardTitle>
-              <Building2 className="w-4 h-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-display text-primary animate-fade-in">{stats.departments}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-primary/10 hover:shadow-glow transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="font-display text-primary">User Management</CardTitle>
-              <CardDescription>Review and approve pending user registrations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => navigate('/admin/users')}
-                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:shadow-glow"
-              >
-                Manage Users
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-primary/10 hover:shadow-glow transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="font-display text-primary">Department Management</CardTitle>
-              <CardDescription>Organize and manage department structure</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => navigate('/admin/departments')}
-                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:shadow-glow"
-              >
-                Manage Departments
-              </Button>
-            </CardContent>
-          </Card>
+            <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Audit Logs
+                </CardTitle>
+                <CardDescription>
+                  View system activity and logs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => navigate('/admin/audit')}
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                >
+                  View Audit Logs
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>

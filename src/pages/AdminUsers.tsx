@@ -8,9 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Check, X, UserCog } from 'lucide-react';
+import { ArrowLeft, Check, X, UserCog, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { ImpersonateDialog } from '@/components/admin/ImpersonateDialog';
 
 interface Profile {
   id: string;
@@ -37,6 +38,8 @@ export default function AdminUsers() {
   const [bulkDepartment, setBulkDepartment] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [impersonateDialogOpen, setImpersonateDialogOpen] = useState(false);
+  const [selectedUserForImpersonation, setSelectedUserForImpersonation] = useState<Profile | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -232,6 +235,11 @@ export default function AdminUsers() {
     }
   };
 
+  const handleOpenImpersonateDialog = (user: Profile) => {
+    setSelectedUserForImpersonation(user);
+    setImpersonateDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -348,7 +356,7 @@ export default function AdminUsers() {
                 <Card key={user.id} className="border-primary/10 hover:shadow-elegant transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1">
+                      <div className="space-y-1 flex-1">
                         <CardTitle className="font-display">{user.full_name || 'No Name'}</CardTitle>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -359,10 +367,21 @@ export default function AdminUsers() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <Badge variant="outline" className="border-success text-success">Approved</Badge>
-                        {user.departments && (
-                          <Badge variant="secondary">{user.departments.name}</Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="border-success text-success">Approved</Badge>
+                          {user.departments && (
+                            <Badge variant="secondary">{user.departments.name}</Badge>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenImpersonateDialog(user)}
+                          className="border-primary/20 hover:bg-primary/5"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          Impersonate
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -372,6 +391,17 @@ export default function AdminUsers() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Impersonation Dialog */}
+      <ImpersonateDialog
+        open={impersonateDialogOpen}
+        onOpenChange={setImpersonateDialogOpen}
+        targetUser={selectedUserForImpersonation ? {
+          id: selectedUserForImpersonation.id,
+          email: selectedUserForImpersonation.email,
+          full_name: selectedUserForImpersonation.full_name,
+        } : null}
+      />
     </div>
   );
 }
