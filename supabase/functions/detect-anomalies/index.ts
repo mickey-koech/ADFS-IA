@@ -60,6 +60,7 @@ serve(async (req) => {
     );
     
     // Check for mass deletions (>20 files in 10 minutes)
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     
     const { data: recentDeletions, error: deletionError } = await supabaseAdmin
       .from('activity_logs')

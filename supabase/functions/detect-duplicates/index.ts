@@ -37,16 +37,16 @@ serve(async (req) => {
       );
     }
 
-  try {
     const { fileId } = await req.json();
     
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // Use service role key for file operations
+    const supabaseServiceUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAdmin = createClient(supabaseServiceUrl, supabaseServiceKey);
     
     // Get file with embedding
-    const { data: file, error: fileError } = await supabase
+    const { data: file, error: fileError } = await supabaseAdmin
       .from('files')
       .select('*')
       .eq('id', fileId)
@@ -61,7 +61,7 @@ serve(async (req) => {
     }
     
     // Find similar files using pgvector
-    const { data: similarFiles, error: searchError } = await supabase
+    const { data: similarFiles, error: searchError } = await supabaseAdmin
       .rpc('match_files', {
         query_embedding: file.embedding,
         match_threshold: 0.75,
@@ -84,7 +84,7 @@ serve(async (req) => {
       // Update file with duplicate information
       const highConfidenceDuplicates = duplicates.filter((d: any) => d.similarity >= 0.88);
       
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from('files')
         .update({
           duplicate_of: duplicates.map((d: any) => d.id),
@@ -96,7 +96,7 @@ serve(async (req) => {
       if (updateError) throw updateError;
       
       // Log activity
-      await supabase.from('activity_logs').insert({
+      await supabaseAdmin.from('activity_logs').insert({
         user_id: file.uploaded_by,
         action: 'duplicates_detected',
         resource_type: 'file',
