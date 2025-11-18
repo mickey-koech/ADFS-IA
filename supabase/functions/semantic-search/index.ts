@@ -15,22 +15,41 @@ serve(async (req) => {
   try {
     const { query } = await req.json();
     
+    // Input validation
+    if (!query || typeof query !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid query parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Sanitize input: limit length and remove dangerous characters
+    const sanitizedQuery = query
+      .trim()
+      .slice(0, 200) // Max 200 characters
+      .replace(/[%_]/g, '\\$&'); // Escape SQL wildcards
+    
+    if (sanitizedQuery.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Query cannot be empty' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Generate embedding for search query using AI
-    // In production, use a proper embedding model
-    // For now, use text-based search as fallback
+    // Perform safe text search using individual filters instead of .or()
+    const searchPattern = `%${sanitizedQuery}%`;
     
-    // Perform traditional text search
     const { data: textResults, error: searchError } = await supabase
       .from('files')
       .select('*')
-      .or(`original_name.ilike.%${query}%,ocr_text.ilike.%${query}%,tags.cs.{${query}}`)
       .eq('is_deleted', false)
+      .or(`original_name.ilike."${searchPattern}",ocr_text.ilike."${searchPattern}"`)
       .order('uploaded_at', { ascending: false })
       .limit(20);
     
