@@ -13,6 +13,30 @@ serve(async (req) => {
   }
 
   try {
+    // Get authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { query } = await req.json();
     
     // Input validation
@@ -36,13 +60,9 @@ serve(async (req) => {
       );
     }
     
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    // Perform safe text search using individual filters instead of .or()
+    // Perform safe text search - RLS will filter results automatically
     const searchPattern = `%${sanitizedQuery}%`;
     
     const { data: textResults, error: searchError } = await supabase
@@ -67,7 +87,7 @@ serve(async (req) => {
           model: 'google/gemini-2.5-flash',
           messages: [{
             role: 'user',
-            content: `Rank these ${textResults.length} search results for query "${query}" and assign relevance scores (0-1). Files: ${JSON.stringify(textResults.map(f => ({ id: f.id, name: f.original_name, tags: f.tags })))}`
+            content: `Rank these ${textResults.length} search results for query "${sanitizedQuery}" and assign relevance scores (0-1). Files: ${JSON.stringify(textResults.map(f => ({ id: f.id, name: f.original_name, tags: f.tags })))}`
           }],
           tools: [{
             type: 'function',

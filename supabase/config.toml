@@ -1,16 +1,16 @@
 project_id = "lmjmotxxwjdhynxgitba"
 
 [functions.process-file-ai]
-verify_jwt = false
+verify_jwt = true
 
 [functions.detect-duplicates]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-predictions]
-verify_jwt = false
+verify_jwt = true
 
 [functions.detect-anomalies]
-verify_jwt = false
+verify_jwt = true
 
 [functions.semantic-search]
-verify_jwt = false
+verify_jwt = true

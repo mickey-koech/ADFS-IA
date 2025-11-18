@@ -13,24 +13,63 @@ serve(async (req) => {
   }
 
   try {
+    // Get authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated and has admin role
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user has admin role
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    if (roleError || !userRole) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service role key for admin operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
     
     // Check for mass deletions (>20 files in 10 minutes)
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     
-    const { data: recentDeletions, error: deletionError } = await supabase
+    const { data: recentDeletions, error: deletionError } = await supabaseAdmin
       .from('activity_logs')
       .select('user_id, action, created_at')
       .eq('action', 'file_deleted')
       .gte('created_at', tenMinutesAgo.toISOString());
     
-    if (deletionError) throw deletionError;
     
     if (recentDeletions && recentDeletions.length > 20) {
-      await supabase.from('anomaly_alerts').insert({
+      await supabaseAdmin.from('anomaly_alerts').insert({
         alert_type: 'mass_deletion',
         severity: 'critical',
         description: `Unusual activity detected: ${recentDeletions.length} files deleted in 10 minutes`,
@@ -41,7 +80,7 @@ serve(async (req) => {
     // Check for unusual upload patterns (>50 files in 1 hour)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     
-    const { data: recentUploads, error: uploadError } = await supabase
+    const { data: recentUploads, error: uploadError } = await supabaseAdmin
       .from('files')
       .select('uploaded_by, uploaded_at')
       .gte('uploaded_at', oneHourAgo.toISOString());
@@ -49,7 +88,7 @@ serve(async (req) => {
     if (uploadError) throw uploadError;
     
     if (recentUploads && recentUploads.length > 50) {
-      await supabase.from('anomaly_alerts').insert({
+      await supabaseAdmin.from('anomaly_alerts').insert({
         alert_type: 'mass_upload',
         severity: 'medium',
         description: `High volume upload detected: ${recentUploads.length} files in 1 hour`,
@@ -58,7 +97,7 @@ serve(async (req) => {
     }
     
     // Check for unauthorized access attempts
-    const { data: failedAccess, error: accessError } = await supabase
+    const { data: failedAccess, error: accessError } = await supabaseAdmin
       .from('activity_logs')
       .select('*')
       .eq('action', 'access_denied')
@@ -67,7 +106,7 @@ serve(async (req) => {
     if (accessError) throw accessError;
     
     if (failedAccess && failedAccess.length > 10) {
-      await supabase.from('anomaly_alerts').insert({
+      await supabaseAdmin.from('anomaly_alerts').insert({
         alert_type: 'unauthorized_access',
         severity: 'high',
         description: `Multiple unauthorized access attempts: ${failedAccess.length} in 1 hour`,
@@ -76,7 +115,7 @@ serve(async (req) => {
     }
     
     // Get recent unresolved alerts
-    const { data: alerts } = await supabase
+    const { data: alerts } = await supabaseAdmin
       .from('anomaly_alerts')
       .select('*')
       .eq('resolved', false)
