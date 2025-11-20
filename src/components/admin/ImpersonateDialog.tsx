@@ -37,29 +37,19 @@ export function ImpersonateDialog({ open, onOpenChange, targetUser }: Impersonat
     setIsImpersonating(true);
 
     try {
-      // Log the impersonation start
-      const sessionToken = crypto.randomUUID();
-      
-      await supabase.rpc('log_impersonation', {
-        _admin_id: user.id,
-        _target_user_id: targetUser.id,
-        _action: 'impersonate_start',
-        _session_token: sessionToken,
+      // Call the secure edge function to start impersonation with httpOnly cookies
+      const { data, error } = await supabase.functions.invoke('impersonation-auth', {
+        body: {
+          action: 'start',
+          targetUserId: targetUser.id,
+        },
       });
 
-      // Store impersonation data in session storage
-      sessionStorage.setItem('impersonation', JSON.stringify({
-        adminId: user.id,
-        targetUserId: targetUser.id,
-        targetUserEmail: targetUser.email,
-        sessionToken,
-        startedAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
-      }));
+      if (error) throw error;
 
       toast({
         title: 'Impersonation Started',
-        description: `You are now viewing as ${targetUser.email}. Session expires in 15 minutes.`,
+        description: `You are now viewing as ${targetUser.email}. Session expires in 30 minutes.`,
       });
 
       onOpenChange(false);
@@ -111,7 +101,7 @@ export function ImpersonateDialog({ open, onOpenChange, targetUser }: Impersonat
                 <ul className="list-disc list-inside space-y-1 text-xs">
                   <li className="flex items-center gap-2">
                     <Clock className="h-3 w-3" />
-                    Session expires in 15 minutes
+                    Session expires in 30 minutes
                   </li>
                   <li className="flex items-center gap-2">
                     <ShieldCheck className="h-3 w-3" />
