@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Loader2 } from 'lucide-react';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
+  const [signupPassword, setSignupPassword] = useState('');
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
@@ -161,7 +163,10 @@ export default function Auth() {
                       required
                       minLength={6}
                       disabled={isLoading}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
                     />
+                    <PasswordStrengthIndicator password={signupPassword} />
                   </div>
                 </CardContent>
                 <CardFooter>
