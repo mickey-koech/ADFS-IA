@@ -9,6 +9,7 @@ import { DuplicateManager } from '@/components/DuplicateManager';
 import { AnomalyAlerts } from '@/components/AnomalyAlerts';
 import { TaskManager } from '@/components/TaskManager';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
+import { ActivityFeed } from '@/components/ActivityFeed';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Dashboard() {
@@ -46,10 +47,15 @@ export default function Dashboard() {
             
             <AnomalyAlerts />
             
-            <SemanticSearch 
-              onResults={(results) => console.log(results)}
-              onLoading={(loading) => console.log(loading)}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <SemanticSearch 
+                  onResults={(results) => console.log(results)}
+                  onLoading={(loading) => console.log(loading)}
+                />
+              </div>
+              <ActivityFeed />
+            </div>
             
             <PredictiveRecommendations />
             

@@ -1,8 +1,9 @@
-import { Search, LogOut, User } from 'lucide-react';
+import { Search, LogOut, User, Settings, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ searchQuery, onSearchChange }: DashboardHeaderProps) {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="border-b bg-card shadow-sm h-16">
@@ -59,6 +61,15 @@ export function DashboardHeader({ searchQuery, onSearchChange }: DashboardHeader
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/security')}>
+                <Shield className="mr-2 h-4 w-4" />
+                Security
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>
                 <LogOut className="mr-2 h-4 w-4" />
