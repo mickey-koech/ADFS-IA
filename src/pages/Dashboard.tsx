@@ -8,6 +8,7 @@ import { PredictiveRecommendations } from '@/components/PredictiveRecommendation
 import { DuplicateManager } from '@/components/DuplicateManager';
 import { AnomalyAlerts } from '@/components/AnomalyAlerts';
 import { TaskManager } from '@/components/TaskManager';
+import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Dashboard() {
@@ -67,6 +68,7 @@ export default function Dashboard() {
       </div>
       
       <TaskManager />
+      <OnboardingFlow />
     </div>
   );
 }

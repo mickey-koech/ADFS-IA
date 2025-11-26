@@ -1,5 +1,6 @@
 import { SessionManagement } from '@/components/SessionManagement';
 import { TwoFactorAuth } from '@/components/TwoFactorAuth';
+import { PasswordChange } from '@/components/PasswordChange';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +26,7 @@ export default function SecuritySettings() {
         </div>
 
         <div className="grid gap-6">
+          <PasswordChange />
           <TwoFactorAuth />
           <SessionManagement />
         </div>
