@@ -6,12 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Loader2 } from 'lucide-react';
+import { FileText, Loader2, Eye, EyeOff } from 'lucide-react';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import { PasswordReset } from '@/components/PasswordReset';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [signupPassword, setSignupPassword] = useState('');
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showResetForm, setShowResetForm] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
@@ -54,12 +58,32 @@ export default function Auth() {
     }
   };
 
+  if (showResetForm) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-accent/10 p-4">
+        <div className="w-full max-w-md">
+          <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center gap-2">
+              <FileText className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold text-foreground">Digital Filing</h1>
+            </div>
+          </div>
+          <PasswordReset onBack={() => setShowResetForm(false)} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-accent/10 p-4">
       <div className="w-full max-w-md space-y-4">
         <div className="p-4 bg-muted/50 rounded-lg border border-primary/20">
           <p className="text-sm font-semibold text-foreground mb-2">Sample Credentials:</p>
           <div className="space-y-2 text-xs">
+            <div>
+              <p className="font-medium text-primary">Admin Account:</p>
+              <p className="text-muted-foreground">admin@filestack.com | admin123</p>
+            </div>
             <div>
               <p className="font-medium text-primary">Regular User (Pending):</p>
               <p className="text-muted-foreground">user@example.com | User123!</p>
@@ -105,19 +129,38 @@ export default function Auth() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      name="password"
-                      type="password"
-                      required
-                      disabled={isLoading}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signin-password"
+                        name="password"
+                        type={showSignInPassword ? 'text' : 'password'}
+                        required
+                        disabled={isLoading}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowSignInPassword(!showSignInPassword)}
+                      >
+                        {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col gap-2">
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm"
+                    onClick={() => setShowResetForm(true)}
+                  >
+                    Forgot password?
                   </Button>
                 </CardFooter>
               </form>
@@ -156,16 +199,27 @@ export default function Auth() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      required
-                      minLength={6}
-                      disabled={isLoading}
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        name="password"
+                        type={showSignUpPassword ? 'text' : 'password'}
+                        required
+                        minLength={6}
+                        disabled={isLoading}
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                      >
+                        {showSignUpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                     <PasswordStrengthIndicator password={signupPassword} />
                   </div>
                 </CardContent>
