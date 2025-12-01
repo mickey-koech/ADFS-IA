@@ -1,18 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showReset, setShowReset] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +27,40 @@ export default function AdminLogin() {
       navigate('/admin');
     } catch (error) {
       console.error('Admin login failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin/login`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for the reset link",
+      });
+      setShowReset(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -39,14 +77,48 @@ export default function AdminLogin() {
           <CardDescription className="text-base">
             Enter your credentials to access the admin dashboard
           </CardDescription>
-          <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-primary/20">
-            <p className="text-xs font-semibold text-muted-foreground mb-1">Sample Admin Credentials:</p>
+          <div className="mt-4 p-3 bg-amber-500/10 rounded-lg border border-amber-500/30">
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">⚠️ First Time Setup Required:</p>
             <p className="text-xs text-foreground">Email: admin@filestack.com</p>
-            <p className="text-xs text-foreground">Password: Admin123!</p>
+            <p className="text-xs text-foreground">Use "Forgot Password" below to set your password</p>
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {showReset ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="admin@filestack.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="border-primary/20 focus:border-accent"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={handlePasswordReset}
+                  className="flex-1 bg-gradient-to-r from-primary to-primary/90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Sending...' : 'Send Reset Link'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowReset(false)}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -71,21 +143,30 @@ export default function AdminLogin() {
                 className="border-primary/20 focus:border-accent"
               />
             </div>
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:shadow-glow transition-all duration-300"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent" />
-                  Authenticating...
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:shadow-glow transition-all duration-300"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent" />
+                    Authenticating...
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                className="w-full text-sm"
+                onClick={() => setShowReset(true)}
+              >
+                Forgot Password?
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
