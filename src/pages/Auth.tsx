@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Loader2, Eye, EyeOff } from 'lucide-react';
+import { FileText, Loader2, Eye, EyeOff, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 import { PasswordReset } from '@/components/PasswordReset';
 
@@ -233,6 +234,16 @@ export default function Auth() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <div className="text-center mt-6">
+          <Link 
+            to="/admin/login" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Shield className="h-4 w-4" />
+            Admin Portal
+          </Link>
+        </div>
       </div>
     </div>
   );
