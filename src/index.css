@@ -42,6 +42,8 @@ All colors MUST be HSL.
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
+    --surface: 0 0% 98%;
+
     --ai-glow: 180 100% 50%;
     --ai-glow-foreground: 0 0% 100%;
 
@@ -92,6 +94,8 @@ All colors MUST be HSL.
     --muted: 215 25% 27%;
     --muted-foreground: 215 20% 65%;
 
+    --surface: 222 47% 13%;
+
     --ai-glow: 180 100% 50%;
     --ai-glow-foreground: 0 0% 100%;
 
@@ -113,5 +117,12 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, hsl(var(--primary) / 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--primary) / 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }

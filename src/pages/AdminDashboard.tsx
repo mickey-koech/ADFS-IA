@@ -4,10 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Building2, LogOut, UserCog, Shield } from 'lucide-react';
+import { Users, FileText, Building2, LogOut, UserCog, Shield, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardWidgets } from '@/components/admin/DashboardWidgets';
 import { formatDistanceToNow } from 'date-fns';
+import { UploadFrequencyChart } from '@/components/admin/analytics/UploadFrequencyChart';
+import { FileTypeDistribution } from '@/components/admin/analytics/FileTypeDistribution';
+import { DepartmentActivityChart } from '@/components/admin/analytics/DepartmentActivityChart';
+import { AIInsightsPanel } from '@/components/admin/analytics/AIInsightsPanel';
+import { StatisticalSummary } from '@/components/admin/analytics/StatisticalSummary';
+import { RecentUploadsTable } from '@/components/admin/analytics/RecentUploadsTable';
+import { Upload, Download, AlertCircle, Clock, TrendingUp, Users as UsersIcon } from 'lucide-react';
 
 interface DashboardStats {
   totalUsers: number;
@@ -167,24 +174,110 @@ export default function AdminDashboard() {
 
   if (!isAdmin) return null;
 
+  // Mock data for charts - In production, fetch from Supabase
+  const uploadFrequencyData = [
+    { date: '12/01', uploads: 45 },
+    { date: '12/02', uploads: 52 },
+    { date: '12/03', uploads: 38 },
+    { date: '12/04', uploads: 65 },
+    { date: '12/05', uploads: 58 },
+    { date: '12/06', uploads: 72 },
+    { date: '12/07', uploads: 68 },
+  ];
+
+  const fileTypeData = [
+    { name: 'PDF', value: 45, color: 'hsl(var(--primary))' },
+    { name: 'DOCX', value: 30, color: 'hsl(var(--secondary))' },
+    { name: 'XLSX', value: 15, color: 'hsl(var(--accent))' },
+    { name: 'Images', value: 8, color: 'hsl(var(--success))' },
+    { name: 'Others', value: 2, color: 'hsl(var(--warning))' },
+  ];
+
+  const departmentActivityData = [
+    { department: 'Academic', uploads: 120, downloads: 95 },
+    { department: 'Admin', uploads: 85, downloads: 70 },
+    { department: 'Finance', uploads: 65, downloads: 80 },
+    { department: 'HR', uploads: 45, downloads: 55 },
+  ];
+
+  const aiInsights = [
+    {
+      id: '1',
+      type: 'anomaly' as const,
+      title: 'Unusual Upload Spike Detected',
+      description: 'Academic department showing 340% increase in uploads compared to last week. Possible exam period activity.',
+      severity: 'medium' as const,
+      confidence: 87,
+    },
+    {
+      id: '2',
+      type: 'prediction' as const,
+      title: 'Storage Capacity Alert',
+      description: 'Current trend suggests storage will reach 80% capacity within 2 weeks. Consider expansion.',
+      severity: 'high' as const,
+      confidence: 92,
+    },
+    {
+      id: '3',
+      type: 'recommendation' as const,
+      title: 'Duplicate Files Found',
+      description: '24 potential duplicate files detected across departments. Total recoverable space: 1.2GB.',
+      severity: 'low' as const,
+      confidence: 78,
+    },
+    {
+      id: '4',
+      type: 'warning' as const,
+      title: 'Declining Activity Pattern',
+      description: 'Finance department showing 45% decrease in file interactions over past month.',
+      severity: 'medium' as const,
+      confidence: 85,
+    },
+  ];
+
+  const summaryStats = [
+    { title: 'Uploads Today', value: '128', change: '+12%', trend: 'up' as const, icon: Upload, color: 'primary' },
+    { title: 'Avg Upload Size', value: '2.4MB', change: '-5%', trend: 'down' as const, icon: TrendingUp, color: 'secondary' },
+    { title: 'Flagged Files', value: '7', change: '+2', trend: 'up' as const, icon: AlertCircle, color: 'warning' },
+    { title: 'Peak Activity', value: '2:30 PM', change: '', trend: 'neutral' as const, icon: Clock, color: 'success' },
+    { title: 'Active Users', value: '89', change: '+15%', trend: 'up' as const, icon: UsersIcon, color: 'accent' },
+    { title: 'Downloads', value: '342', change: '+8%', trend: 'up' as const, icon: Download, color: 'secondary' },
+  ];
+
+  const recentUploads = [
+    { id: '1', fileName: 'Q4_Financial_Report.pdf', user: 'John Doe', department: 'Finance', size: '2.4MB', status: 'reviewed' as const, timestamp: new Date().toISOString() },
+    { id: '2', fileName: 'Student_Records_2024.xlsx', user: 'Jane Smith', department: 'Academic', size: '5.1MB', status: 'pending' as const, timestamp: new Date(Date.now() - 3600000).toISOString() },
+    { id: '3', fileName: 'HR_Policy_Update.docx', user: 'Mike Wilson', department: 'HR', size: '892KB', status: 'reviewed' as const, timestamp: new Date(Date.now() - 7200000).toISOString() },
+    { id: '4', fileName: 'Suspicious_File.zip', user: 'Unknown', department: 'IT', size: '15.2MB', status: 'flagged' as const, timestamp: new Date(Date.now() - 10800000).toISOString() },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
+      {/* Holographic Background Effect */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-secondary/10 pointer-events-none" />
+      <div className="fixed inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
+      
       {/* Header */}
-      <header className="border-b border-primary/10 bg-surface/50 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-primary/20 bg-card/40 backdrop-blur-xl sticky top-0 z-50 shadow-glass">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-              <UserCog className="w-5 h-5 text-accent" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center shadow-glow animate-glow-pulse">
+              <UserCog className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-display text-primary">Admin Portal</h1>
-              <p className="text-sm text-muted-foreground">AI-Powered Digital Filing System</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                Command Center
+              </h1>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                AI-Digital Filing System • Advanced Analytics
+              </p>
             </div>
           </div>
           <Button
             variant="outline"
             onClick={handleSignOut}
-            className="border-primary/20 hover:bg-primary/5"
+            className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
@@ -193,20 +286,51 @@ export default function AdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
-        <div className="space-y-6">
+      <main className="container mx-auto px-6 py-8 relative z-10">
+        <div className="space-y-8">
+          {/* Statistical Summary */}
+          <div className="animate-fade-in">
+            <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              System Overview
+            </h2>
+            <StatisticalSummary stats={summaryStats} />
+          </div>
+
           {/* Dashboard Widgets */}
-          <DashboardWidgets 
-            stats={stats} 
-            recentActivity={recentActivity}
-            departmentStats={departmentStats}
-          />
+          <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <DashboardWidgets 
+              stats={stats} 
+              recentActivity={recentActivity}
+              departmentStats={departmentStats}
+            />
+          </div>
+
+          {/* Analytics Grid */}
+          <div className="grid gap-6 lg:grid-cols-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <UploadFrequencyChart data={uploadFrequencyData} />
+            <FileTypeDistribution data={fileTypeData} />
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="lg:col-span-2">
+              <DepartmentActivityChart data={departmentActivityData} />
+            </div>
+            <div className="lg:col-span-1">
+              <AIInsightsPanel insights={aiInsights} />
+            </div>
+          </div>
+
+          {/* Recent Uploads Table */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <RecentUploadsTable uploads={recentUploads} />
+          </div>
 
           {/* Quick Actions */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300">
+          <div className="grid gap-6 md:grid-cols-3 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <Card className="border-primary/20 hover:shadow-glow hover:border-primary/40 transition-all group bg-gradient-to-br from-card/80 to-primary/5">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
                   <Users className="w-5 h-5" />
                   User Management
                 </CardTitle>
@@ -217,16 +341,16 @@ export default function AdminDashboard() {
               <CardContent>
                 <Button
                   onClick={() => navigate('/admin/users')}
-                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg"
                 >
                   Manage Users
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300">
+            <Card className="border-secondary/20 hover:shadow-glow hover:border-secondary/40 transition-all group bg-gradient-to-br from-card/80 to-secondary/5">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 group-hover:text-secondary transition-colors">
                   <Building2 className="w-5 h-5" />
                   Departments
                 </CardTitle>
@@ -237,16 +361,16 @@ export default function AdminDashboard() {
               <CardContent>
                 <Button
                   onClick={() => navigate('/admin/departments')}
-                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  className="w-full bg-gradient-to-r from-secondary to-accent hover:from-secondary/90 hover:to-accent/90 shadow-lg"
                 >
                   Manage Departments
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-primary/10 hover:shadow-elegant transition-all duration-300">
+            <Card className="border-accent/20 hover:shadow-glow hover:border-accent/40 transition-all group bg-gradient-to-br from-card/80 to-accent/5">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 group-hover:text-accent transition-colors">
                   <Shield className="w-5 h-5" />
                   Audit Logs
                 </CardTitle>
@@ -257,7 +381,7 @@ export default function AdminDashboard() {
               <CardContent>
                 <Button
                   onClick={() => navigate('/admin/audit')}
-                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  className="w-full bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 shadow-lg"
                 >
                   View Audit Logs
                 </Button>
