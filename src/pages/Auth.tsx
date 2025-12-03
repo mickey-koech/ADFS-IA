@@ -78,24 +78,6 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-accent/10 p-4">
       <div className="w-full max-w-md space-y-4">
-        <div className="p-4 bg-muted/50 rounded-lg border border-primary/20">
-          <p className="text-sm font-semibold text-foreground mb-2">Sample Credentials:</p>
-          <div className="space-y-2 text-xs">
-            <div>
-              <p className="font-medium text-primary">Admin Account:</p>
-              <p className="text-muted-foreground">admin@filestack.com | admin123</p>
-            </div>
-            <div>
-              <p className="font-medium text-primary">Regular User (Pending):</p>
-              <p className="text-muted-foreground">user@example.com | User123!</p>
-            </div>
-            <div>
-              <p className="font-medium text-primary">Verified User:</p>
-              <p className="text-muted-foreground">verified@example.com | User123!</p>
-            </div>
-          </div>
-        </div>
-        
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-2">
             <FileText className="h-8 w-8 text-primary" />
