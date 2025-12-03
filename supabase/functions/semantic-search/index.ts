@@ -47,15 +47,15 @@ serve(async (req) => {
       );
     }
     
-    // Sanitize input: limit length and remove dangerous characters
+    // Stricter input validation: allow only alphanumeric, spaces, and basic punctuation
     const sanitizedQuery = query
       .trim()
-      .slice(0, 200) // Max 200 characters
-      .replace(/[%_]/g, '\\$&'); // Escape SQL wildcards
+      .slice(0, 200)
+      .replace(/[^a-zA-Z0-9\s.,'-]/g, '');
     
-    if (sanitizedQuery.length === 0) {
+    if (sanitizedQuery.length < 2) {
       return new Response(
-        JSON.stringify({ error: 'Query cannot be empty' }),
+        JSON.stringify({ error: 'Query too short or contains invalid characters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -149,7 +149,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Semantic search error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An internal error occurred while processing your search request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -14,6 +14,9 @@ import { DepartmentActivityChart } from '@/components/admin/analytics/Department
 import { AIInsightsPanel } from '@/components/admin/analytics/AIInsightsPanel';
 import { StatisticalSummary } from '@/components/admin/analytics/StatisticalSummary';
 import { RecentUploadsTable } from '@/components/admin/analytics/RecentUploadsTable';
+import { RealTimeNotifications } from '@/components/admin/RealTimeNotifications';
+import { PDFExport } from '@/components/admin/PDFExport';
+import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
 import { Upload, Download, AlertCircle, Clock, TrendingUp, Users as UsersIcon } from 'lucide-react';
 
 interface DashboardStats {
@@ -51,6 +54,15 @@ export default function AdminDashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Real-time analytics data
+  const {
+    uploadFrequency: realTimeUploadData,
+    fileTypeDistribution: realTimeFileTypes,
+    departmentActivity: realTimeDeptActivity,
+    recentUploads: realTimeUploads,
+    loading: analyticsLoading
+  } = useRealTimeAnalytics();
 
   useEffect(() => {
     checkAdminRole();
@@ -174,8 +186,8 @@ export default function AdminDashboard() {
 
   if (!isAdmin) return null;
 
-  // Mock data for charts - In production, fetch from Supabase
-  const uploadFrequencyData = [
+  // Use real-time data with fallback to mock data
+  const uploadFrequencyData = realTimeUploadData.length > 0 ? realTimeUploadData : [
     { date: '12/01', uploads: 45 },
     { date: '12/02', uploads: 52 },
     { date: '12/03', uploads: 38 },
@@ -185,15 +197,15 @@ export default function AdminDashboard() {
     { date: '12/07', uploads: 68 },
   ];
 
-  const fileTypeData = [
+  const fileTypeData = realTimeFileTypes.length > 0 ? realTimeFileTypes : [
     { name: 'PDF', value: 45, color: 'hsl(var(--primary))' },
     { name: 'DOCX', value: 30, color: 'hsl(var(--secondary))' },
     { name: 'XLSX', value: 15, color: 'hsl(var(--accent))' },
-    { name: 'Images', value: 8, color: 'hsl(var(--success))' },
-    { name: 'Others', value: 2, color: 'hsl(var(--warning))' },
+    { name: 'Images', value: 8, color: 'hsl(142, 76%, 36%)' },
+    { name: 'Others', value: 2, color: 'hsl(38, 92%, 50%)' },
   ];
 
-  const departmentActivityData = [
+  const departmentActivityData = realTimeDeptActivity.length > 0 ? realTimeDeptActivity : [
     { department: 'Academic', uploads: 120, downloads: 95 },
     { department: 'Admin', uploads: 85, downloads: 70 },
     { department: 'Finance', uploads: 65, downloads: 80 },
@@ -244,7 +256,7 @@ export default function AdminDashboard() {
     { title: 'Downloads', value: '342', change: '+8%', trend: 'up' as const, icon: Download, color: 'secondary' },
   ];
 
-  const recentUploads = [
+  const recentUploads = realTimeUploads.length > 0 ? realTimeUploads : [
     { id: '1', fileName: 'Q4_Financial_Report.pdf', user: 'John Doe', department: 'Finance', size: '2.4MB', status: 'reviewed' as const, timestamp: new Date().toISOString() },
     { id: '2', fileName: 'Student_Records_2024.xlsx', user: 'Jane Smith', department: 'Academic', size: '5.1MB', status: 'pending' as const, timestamp: new Date(Date.now() - 3600000).toISOString() },
     { id: '3', fileName: 'HR_Policy_Update.docx', user: 'Mike Wilson', department: 'HR', size: '892KB', status: 'reviewed' as const, timestamp: new Date(Date.now() - 7200000).toISOString() },
@@ -274,14 +286,17 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleSignOut}
-            className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-3">
+            <PDFExport stats={stats} />
+            <Button
+              variant="outline"
+              onClick={handleSignOut}
+              className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -319,6 +334,11 @@ export default function AdminDashboard() {
             <div className="lg:col-span-1">
               <AIInsightsPanel insights={aiInsights} />
             </div>
+          </div>
+
+          {/* Real-Time Notifications */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.35s' }}>
+            <RealTimeNotifications />
           </div>
 
           {/* Recent Uploads Table */}
