@@ -8,10 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Check, X, UserCog, Eye } from 'lucide-react';
+import { ArrowLeft, Check, X, UserCog, Eye, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ImpersonateDialog } from '@/components/admin/ImpersonateDialog';
+import { AdminPasswordReset } from '@/components/admin/AdminPasswordReset';
 
 interface Profile {
   id: string;
@@ -40,6 +41,8 @@ export default function AdminUsers() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [impersonateDialogOpen, setImpersonateDialogOpen] = useState(false);
   const [selectedUserForImpersonation, setSelectedUserForImpersonation] = useState<Profile | null>(null);
+  const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false);
+  const [selectedUserForPasswordReset, setSelectedUserForPasswordReset] = useState<Profile | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -240,6 +243,11 @@ export default function AdminUsers() {
     setImpersonateDialogOpen(true);
   };
 
+  const handleOpenPasswordResetDialog = (user: Profile) => {
+    setSelectedUserForPasswordReset(user);
+    setPasswordResetDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -373,15 +381,26 @@ export default function AdminUsers() {
                             <Badge variant="secondary">{user.departments.name}</Badge>
                           )}
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleOpenImpersonateDialog(user)}
-                          className="border-primary/20 hover:bg-primary/5"
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          Impersonate
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleOpenPasswordResetDialog(user)}
+                            className="border-warning/20 hover:bg-warning/5 text-warning"
+                          >
+                            <Key className="w-3 h-3 mr-1" />
+                            Reset Password
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleOpenImpersonateDialog(user)}
+                            className="border-primary/20 hover:bg-primary/5"
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            Impersonate
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
@@ -400,6 +419,17 @@ export default function AdminUsers() {
           id: selectedUserForImpersonation.id,
           email: selectedUserForImpersonation.email,
           full_name: selectedUserForImpersonation.full_name,
+        } : null}
+      />
+
+      {/* Password Reset Dialog */}
+      <AdminPasswordReset
+        open={passwordResetDialogOpen}
+        onOpenChange={setPasswordResetDialogOpen}
+        targetUser={selectedUserForPasswordReset ? {
+          id: selectedUserForPasswordReset.id,
+          email: selectedUserForPasswordReset.email,
+          full_name: selectedUserForPasswordReset.full_name,
         } : null}
       />
     </div>
