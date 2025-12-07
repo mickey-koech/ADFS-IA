@@ -16,8 +16,10 @@ import { StatisticalSummary } from '@/components/admin/analytics/StatisticalSumm
 import { RecentUploadsTable } from '@/components/admin/analytics/RecentUploadsTable';
 import { RealTimeNotifications } from '@/components/admin/RealTimeNotifications';
 import { PDFExport } from '@/components/admin/PDFExport';
+import { ChatAnalytics } from '@/components/admin/analytics/ChatAnalytics';
 import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
-import { Upload, Download, AlertCircle, Clock, TrendingUp, Users as UsersIcon } from 'lucide-react';
+import { Upload, Download, AlertCircle, Clock, TrendingUp, Users as UsersIcon, MessageCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DashboardStats {
   totalUsers: number;
@@ -302,15 +304,27 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 relative z-10">
-        <div className="space-y-8">
-          {/* Statistical Summary */}
-          <div className="animate-fade-in">
-            <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              System Overview
-            </h2>
-            <StatisticalSummary stats={summaryStats} />
-          </div>
+        <Tabs defaultValue="overview" className="space-y-8">
+          <TabsList className="bg-card/50 border border-primary/20 p-1">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Chat Analytics
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-8">
+            {/* Statistical Summary */}
+            <div className="animate-fade-in">
+              <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                System Overview
+              </h2>
+              <StatisticalSummary stats={summaryStats} />
+            </div>
 
           {/* Dashboard Widgets */}
           <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
@@ -408,7 +422,18 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-8">
+            <div className="animate-fade-in">
+              <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-primary" />
+                Department Chat Analytics
+              </h2>
+              <ChatAnalytics />
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

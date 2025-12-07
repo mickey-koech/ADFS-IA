@@ -13,12 +13,16 @@ import {
   Moon,
   Sun,
   Folder,
-  Tag
+  Tag,
+  Bell,
+  X,
+  Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   Tooltip,
   TooltipContent,
@@ -31,6 +35,8 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatDistanceToNow } from 'date-fns';
 
 interface FloatingDockProps {
   onFolderSelect?: (folder: string | null) => void;
@@ -63,10 +69,12 @@ export function FloatingDock({
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [isAdmin, setIsAdmin] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [foldersOpen, setFoldersOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const folders = ['Documents', 'Images', 'Reports', 'Archives'];
   const tags = ['Important', 'Urgent', 'Student Records', 'Administrative'];
@@ -290,6 +298,102 @@ export function FloatingDock({
         })}
 
         <div className="w-px h-8 bg-primary/20 mx-2" />
+
+        {/* Notifications Bell */}
+        <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "relative p-3 rounded-xl transition-all duration-300 group",
+                notificationsOpen 
+                  ? "bg-primary text-accent scale-110" 
+                  : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
+              )}
+              onMouseEnter={() => setHoveredItem('notifications')}
+              onMouseLeave={() => setHoveredItem(null)}
+            >
+              <Bell className={cn(
+                "w-6 h-6 transition-transform duration-300",
+                hoveredItem === 'notifications' && "scale-110 -translate-y-1"
+              )} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+              {hoveredItem === 'notifications' && !notificationsOpen && (
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-primary text-accent text-xs rounded-md whitespace-nowrap">
+                  Notifications
+                </span>
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" side="top" sideOffset={12}>
+            <div className="flex items-center justify-between p-3 border-b border-border">
+              <h4 className="font-semibold text-foreground">Notifications</h4>
+              {unreadCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
+                  <Check className="w-3 h-3 mr-1" />
+                  Mark all read
+                </Button>
+              )}
+            </div>
+            <ScrollArea className="h-[300px]">
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                  <Bell className="w-8 h-8 mb-2 opacity-50" />
+                  <p className="text-sm">No notifications</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {notifications.slice(0, 20).map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={cn(
+                        "p-3 hover:bg-muted/50 cursor-pointer transition-colors",
+                        !notification.read && "bg-primary/5"
+                      )}
+                      onClick={() => {
+                        markAsRead(notification.id);
+                        if (notification.type === 'message') {
+                          onChatOpen?.();
+                          setNotificationsOpen(false);
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                          notification.type === 'message' && "bg-primary/10 text-primary",
+                          notification.type === 'alert' && "bg-destructive/10 text-destructive",
+                          notification.type === 'system' && "bg-secondary/10 text-secondary"
+                        )}>
+                          {notification.type === 'message' && <MessageCircle className="w-4 h-4" />}
+                          {notification.type === 'alert' && <Shield className="w-4 h-4" />}
+                          {notification.type === 'system' && <Bell className="w-4 h-4" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-foreground truncate">
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {notification.description}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
 
         {/* Theme Toggle */}
         <button
